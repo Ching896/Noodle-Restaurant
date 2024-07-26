@@ -1,0 +1,44 @@
+SET LINESIZE 160
+SET PAGESIZE 100
+COLUMN CUST_ID FORMAT A11 HEADING 'Customer ID'
+COLUMN CUST_NAME FORMAT A13 HEADING 'Customer Name'
+COLUMN item_code FORMAT A9 HEADING 'Item Code'
+COLUMN item_name FORMAT A33 HEADING 'Item Name'
+COLUMN item_price FORMAT $999,999.99 HEADING 'Unit Price(RM)'
+COLUMN item_qty FORMAT 99999999 HEADING 'Quantity'
+COLUMN item_total_amount FORMAT $999,999.99 HEADING 'Total(RM)'
+BREAK ON CUST_ID ON CUST_NAME ON item_code SKIP 1 NODUPLICATES
+
+ACCEPT v_order_refno CHAR PROMPT 'Enter the order reference number : '
+
+TTITLE LEFT '                                        Receipt for &v_order_refno' SKIP 1 -
+LEFT '                                        ===========================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF item_qty ON cust_id
+COMPUTE SUM OF item_total_amount ON cust_id;
+
+SELECT 
+    TO_CHAR(c.cust_id) AS cust_id,
+    c.cust_name AS cust_name,
+    ol.item_code AS item_code,
+    i.item_name AS item_name,
+    i.item_price AS item_price,
+    ol.item_qty AS item_qty,
+    (i.item_price * ol.item_qty) AS item_total_amount
+FROM 
+    food_order fo
+JOIN 
+    customer c 
+ON 
+    fo.cust_id = c.cust_id
+JOIN 
+    order_list ol 
+ON 
+    fo.order_refno = ol.order_refno
+JOIN 
+    Item i
+ON 
+    ol.item_code = i.item_code
+WHERE 
+    fo.order_refno = '&v_order_refno';
+

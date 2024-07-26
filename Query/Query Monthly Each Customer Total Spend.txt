@@ -1,0 +1,36 @@
+CLEAR COLUMNS
+CLEAR BREAKS
+TTITLE OFF 
+
+SET LINESIZE 150
+SET PAGESIZE 30
+
+COLUMN CUST_ID 		FORMAT A10 HEADING 'Customer ID'
+COLUMN CUST_NAME 	FORMAT A20 HEADING 'Customer Name'
+COLUMN Total_Spend 	FORMAT 9999.99 HEADING 'Total Spend(RM)'
+COLUMN Month FORMAT A6 	HEADING 'Month'
+
+BREAK ON Month ON Cust_ID SKIP 1 NODUPLICATES
+
+ACCEPT input_month CHAR PROMPT 'Enter Month (MM):'
+ACCEPT input_year CHAR PROMPT 'Enter Year (YYYY):'
+
+TTITLE LEFT '               Total Spend Of Each Customer for Year &input_year' SKIP 1 -
+LEFT '               ==================================================' SKIP 2
+
+SELECT 
+    TO_CHAR(TO_DATE('&input_month','MM'),'MON') AS Month, 
+    TO_CHAR(c.cust_id) AS "Customer ID",
+    c.cust_name AS "Customer Name",
+    SUM(f.total_amount) AS Total_Spend
+FROM 
+    customer c
+JOIN 
+    food_order f ON c.cust_id = f.cust_id
+WHERE 
+    EXTRACT(MONTH FROM f.order_date) = '&input_month' AND EXTRACT(YEAR FROM f.order_date) = '&input_year'
+GROUP BY 
+    TO_CHAR(c.cust_id),
+    c.cust_name
+ORDER BY 
+    SUM(f.total_amount) DESC;

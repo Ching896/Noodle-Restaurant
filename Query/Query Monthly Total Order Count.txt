@@ -1,0 +1,25 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN Month FORMAT A5 HEADING 'Month'
+COLUMN total_takeaway_order FORMAT 99999999 HEADING 'Total TakeAway Order'
+COLUMN total_dinein_order FORMAT 99999999 HEADING 'Total Dine In Order'
+COLUMN total_order FORMAT 99999999 HEADING 'Total Order'
+
+ACCEPT user_month CHAR PROMPT 'Enter Month (MM): '
+ACCEPT user_year CHAR PROMPT 'Enter Year (YYYY): '
+
+TTITLE LEFT '                 Total Order in Year &user_year' SKIP 1 -
+LEFT '                 ========================' SKIP 2
+
+SELECT 
+    TO_CHAR(TO_DATE('&user_month', 'MM'), 'MON') AS Month,
+    COUNT(DISTINCT T.takeaway_id) AS total_takeaway_order,
+    COUNT(DISTINCT FO.order_refno) AS total_dinein_order,
+    COUNT(DISTINCT T.takeaway_id) + COUNT(DISTINCT FO.order_refno) AS total_order
+FROM 
+    takeaway T
+LEFT JOIN 
+    food_order FO ON TO_CHAR(T.takeaway_date, 'MM-YYYY') = TO_CHAR(FO.order_date, 'MM-YYYY')
+WHERE 
+    TO_CHAR(T.takeaway_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+    OR TO_CHAR(FO.order_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year';

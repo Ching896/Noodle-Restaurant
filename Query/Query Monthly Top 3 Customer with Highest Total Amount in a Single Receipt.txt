@@ -1,0 +1,52 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN CUST_ID FORMAT A11 HEADING 'Customer ID'
+COLUMN CUST_NAME FORMAT A30 HEADING 'Customer Name'
+COLUMN order_refno FORMAT A18 HEADING 'Order Reference No'
+COLUMN total_amount FORMAT $999,999.99 HEADING 'Total Amount(RM)'
+COLUMN total_item_qty FORMAT 99999999 HEADING 'Total Food And Drink'
+COLUMN Month FORMAT A6 HEADING 'Month'
+BREAK ON Month ON Cust_ID SKIP 1 NODUPLICATES
+
+ACCEPT input_month CHAR PROMPT 'Enter month (MM): '
+ACCEPT input_year CHAR PROMPT 'Enter year (YYYY): '
+
+TTITLE LEFT '             Top 3 Customers with Highest Total Amount in a Single Receipt for Year &input_year' SKIP 1 -
+LEFT '             ===========================================================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_item_qty ON Month
+COMPUTE SUM OF total_amount ON Month;
+
+SELECT 
+    TO_CHAR(TO_DATE('&input_month', 'MM'), 'MON') AS Month,
+    TO_CHAR(cust_id) AS cust_id,
+    cust_name,
+    order_refno,
+    total_item_qty,
+    total_amount
+FROM (
+    SELECT 
+        TO_CHAR(c.cust_id) AS cust_id,
+        c.cust_name,
+        fo.order_refno,
+        SUM(ol.item_qty) AS total_item_qty,
+        fo.total_amount
+    FROM 
+        customer c
+    JOIN 
+        food_order fo ON c.cust_id = fo.cust_id
+    JOIN 
+        order_list ol ON fo.order_refno = ol.order_refno
+    WHERE 
+        EXTRACT(MONTH FROM fo.order_date) = '&input_month' AND EXTRACT(YEAR FROM    fo.order_date) = '&input_year'    
+    GROUP BY 
+        c.cust_id,
+        c.cust_name,
+        fo.order_refno,
+        fo.total_amount
+    ORDER BY 
+        fo.total_amount DESC
+)
+WHERE ROWNUM <= 3;
+
+   

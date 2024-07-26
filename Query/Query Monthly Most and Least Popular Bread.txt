@@ -1,0 +1,48 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN Month FORMAT A5 HEADING 'Month'
+COLUMN bread_code FORMAT A10 HEADING 'Bread Code'
+COLUMN bread_name FORMAT A20 HEADING 'Bread Name'
+COLUMN total_bread_qty FORMAT 99999999 HEADING 'Total Bread Quantity'
+BREAK ON Month ON bread_code SKIP 1 NODUPLICATES
+
+-- Prompt the user to enter the month and year in the format MM-YYYY
+ACCEPT user_month CHAR PROMPT 'Enter Month (MM): '
+ACCEPT user_year CHAR PROMPT 'Enter Year (YYYY): '
+
+TTITLE LEFT '        Most And Least Popular Bread in Year &user_year' SKIP 1 -
+LEFT '        =========================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total Bread Quantity:' OF total_bread_qty ON Month;
+
+WITH BreadTotals AS (
+    SELECT 
+        ab.bread_code, 
+        sb.bread_name, 
+        SUM(ab.bread_qty) AS total_bread_qty
+    FROM 
+        Food_Order fo
+        JOIN AddOnBread ab ON fo.order_refno = ab.order_refno
+        JOIN Specialty_Bread sb ON ab.bread_code = sb.bread_code
+    WHERE 
+        TO_CHAR(fo.order_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+    GROUP BY 
+        ab.bread_code, 
+        sb.bread_name
+)
+SELECT 
+    TO_CHAR(TO_DATE('&user_month', 'MM'), 'MON') AS Month,
+    bread_code, 
+    bread_name, 
+    total_bread_qty
+FROM 
+    BreadTotals
+WHERE 
+    total_bread_qty = (
+        SELECT MAX(total_bread_qty) AS max_qty 
+        FROM BreadTotals
+    )
+    OR total_bread_qty = (
+        SELECT MIN(total_bread_qty) AS min_qty 
+        FROM BreadTotals
+    );

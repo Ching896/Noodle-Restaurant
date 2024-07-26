@@ -1,0 +1,45 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN cust_name FORMAT A20
+COLUMN avg_amount FORMAT A19
+COLUMN Year FORMAT A10
+COLUMN avg_amount_spent FORMAT 9999999999.99 HEADING 'AVG_AMOUNT_SPENT(RM)'
+BREAK ON Year SKIP 1 NODUPLICATES
+ACCEPT input_month_year CHAR PROMPT 'Enter month and year (MM-YYYY): '
+
+TTITLE LEFT '                     Most Frequent Dine In Customers' SKIP 1 -
+LEFT '                  =====================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF avg_amount_spent ON Year;
+
+WITH CustomerVisits AS (
+    SELECT
+        c.cust_id,
+        c.cust_name,
+        COUNT(fo.order_refno) AS visit_count,
+        AVG(fo.total_amount) AS avg_amount_spent
+    FROM
+        Customer c
+        JOIN Food_Order fo ON c.cust_id = fo.cust_id
+    WHERE
+        TO_CHAR(fo.order_date, 'MM-YYYY') = '&input_month_year'
+    GROUP BY
+        c.cust_id,
+        c.cust_name
+)
+SELECT
+    '&input_month_year' AS Year,
+    cust_id,
+    cust_name,
+    visit_count,
+    ROUND(avg_amount_spent, 2) AS avg_amount_spent
+FROM
+    (
+        SELECT
+            cv.*,
+            RANK() OVER (ORDER BY visit_count DESC) AS visit_rank
+        FROM
+            CustomerVisits cv
+    )
+ORDER BY
+    visit_count DESC;

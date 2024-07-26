@@ -1,0 +1,32 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN Month FORMAT A12 HEADING 'Month'
+COLUMN cust_id FORMAT A11 HEADING 'Customer ID'
+COLUMN cust_name FORMAT A25 HEADING 'Customer Name'
+COLUMN order_refno FORMAT 99999999 HEADING 'Order Reference No'
+COLUMN total_amount FORMAT $99999999.99 HEADING 'Total Spent(RM)'
+
+BREAK ON Month ON cust_id ON cust_name ON order_refno SKIP 1 NODUPLICATES
+
+ACCEPT user_month CHAR PROMPT 'Enter Month (MM): '
+ACCEPT user_year CHAR PROMPT 'Enter Year (YYYY): '
+ACCEPT customer_id CHAR PROMPT 'Enter Customer ID: '
+
+TTITLE LEFT '                      Order made by &customer_id in Year &user_year' SKIP 1 -
+LEFT '                      ===============================' SKIP 2
+
+COMPUTE COUNT LABEL 'Total Order:' OF order_refno ON Month
+COMPUTE SUM LABEL 'Total Spent:' OF total_amount ON Month;
+
+SELECT 
+    TO_CHAR(TO_DATE('&user_month', 'MM'), 'MON') AS Month,    
+    TO_CHAR(c.cust_id) AS cust_id,
+    c.cust_name AS cust_name,
+    fo.order_refno AS order_refno,
+    fo.total_amount AS total_amount
+FROM 
+    customer c
+INNER JOIN 
+    food_order fo ON c.cust_id = fo.cust_id
+WHERE TO_CHAR(fo.order_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+AND c.cust_id = '&customer_id';

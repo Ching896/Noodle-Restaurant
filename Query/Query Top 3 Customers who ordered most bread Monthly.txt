@@ -1,0 +1,37 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN CUST_ID FORMAT A11 HEADING 'Customer ID'
+COLUMN CUST_NAME FORMAT A30 HEADING 'Customer Name'
+COLUMN total_bread_qty FORMAT 99999999 HEADING 'Total Bread'
+COLUMN Month FORMAT A21 HEADING 'Month'
+BREAK ON Month ON Cust_ID SKIP 1 NODUPLICATES
+
+ACCEPT input_month CHAR PROMPT 'Enter month (MM): '
+ACCEPT input_year CHAR PROMPT 'Enter year (YYYY): '
+
+TTITLE LEFT '            Top 3 Customers who ordered most bread in Year '&input_year'' SKIP 1 -
+LEFT '           =====================================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total Bread Quantity:' OF total_bread_qty ON month;
+
+SELECT * FROM (
+    SELECT 
+        TO_CHAR(TO_DATE('&input_month', 'MM'), 'MON') AS Month,
+        TO_CHAR(c.cust_id) AS cust_id,
+        c.cust_name,
+        SUM(ab.bread_qty) AS total_bread_qty
+    FROM 
+        food_order fo
+    JOIN 
+        customer c ON fo.cust_id = c.cust_id
+    JOIN 
+        AddOnBread ab ON fo.order_refno = ab.order_refno
+    WHERE 
+        EXTRACT(MONTH FROM fo.order_date) = '&input_month' AND EXTRACT(YEAR FROM fo.order_date) = '&input_year'
+    GROUP BY 
+        c.cust_id, c.cust_name
+    ORDER BY 
+        total_bread_qty DESC
+)
+WHERE ROWNUM <= 3;
+

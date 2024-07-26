@@ -1,0 +1,44 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN CUST_ID FORMAT A11 HEADING 'Customer ID'
+COLUMN CUST_NAME FORMAT A30 HEADING 'Customer Name'
+COLUMN total_amount FORMAT $999,999.99 HEADING 'Total Amount(RM)'
+COLUMN total_orders FORMAT 99999999 HEADING 'Total Order'
+COLUMN Month FORMAT A6 HEADING 'Month'
+BREAK ON Month ON Cust_ID SKIP 1 NODUPLICATES
+
+ACCEPT input_month CHAR PROMPT 'Enter month (MM): '
+ACCEPT input_year CHAR PROMPT 'Enter year (YYYY): '
+
+TTITLE LEFT '              Top 5 Customer who order most in Year &input_year' SKIP 1 -
+LEFT '              ==========================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_orders ON Month
+COMPUTE SUM OF total_amount ON Month;
+
+SELECT 
+    TO_CHAR(TO_DATE('&input_month', 'MM'), 'MON') AS Month,
+    TO_CHAR(cust_id) AS cust_id,
+    cust_name,
+    total_orders,
+    total_amount
+FROM (
+    SELECT 
+        c.cust_id as cust_id,
+        c.cust_name,
+        COUNT(fo.order_refno) AS total_orders,
+        SUM(fo.total_amount) AS total_amount
+    FROM 
+        customer c
+    JOIN 
+        food_order fo ON c.cust_id = fo.cust_id
+    WHERE 
+        EXTRACT(MONTH FROM fo.order_date) = '&input_month' AND EXTRACT(YEAR FROM    fo.order_date) = '&input_year'    
+    GROUP BY 
+        c.cust_id,
+        c.cust_name
+    ORDER BY 
+        total_orders DESC
+) WHERE ROWNUM <= 5;
+
+

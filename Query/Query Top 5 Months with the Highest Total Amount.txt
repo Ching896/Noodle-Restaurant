@@ -1,0 +1,64 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN month_number FORMAT A20
+COLUMN month_name FORMAT A10
+COLUMN total_amount FORMAT 999999999.99 HEADING 'TOTAL_AMOUNT(RM)'
+BREAK ON Year SKIP 1 NODUPLICATES
+ACCEPT input_year CHAR PROMPT 'Enter year (YYYY): '
+
+TTITLE LEFT '              Top 5 Months with the Highest Total Amount for Year &input_year' SKIP 1 -
+LEFT '             ==========================================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_amount ON Year
+COMPUTE SUM OF num_orders ON Year
+COMPUTE SUM OF num_takeaways ON Year;
+
+WITH MonthlyTotals AS (
+SELECT 
+    TO_CHAR(order_date, 'MM') AS month_number,
+    TO_CHAR(order_date, 'Month') AS month_name,
+    SUM(total_amount) AS total_amount,
+    COUNT(order_refno) AS num_orders,
+    0 AS num_takeaways
+FROM 
+    Food_Order
+WHERE 
+    TO_CHAR(order_date, 'YYYY') = '&input_year'
+GROUP BY 
+    TO_CHAR(order_date, 'MM'), TO_CHAR(order_date, 'Month')
+UNION ALL
+SELECT 
+    TO_CHAR(takeaway_date, 'MM') AS month_number,
+    TO_CHAR(takeaway_date, 'Month') AS month_name,
+    SUM(total_amount) AS total_amount,
+    0 AS num_orders,
+    COUNT(takeaway_id) AS num_takeaways
+FROM 
+    Takeaway
+WHERE 
+    TO_CHAR(takeaway_date, 'YYYY') = '&input_year'
+GROUP BY 
+    TO_CHAR(takeaway_date, 'MM'), TO_CHAR(takeaway_date, 'Month')
+)
+SELECT 
+    &input_year AS Year,
+    month_number,
+    month_name,
+    total_amount AS total_amount,
+    num_orders,
+    num_takeaways
+FROM (
+    SELECT 
+        month_number,
+        month_name,
+        SUM(total_amount) AS total_amount,
+        SUM(num_orders) AS num_orders,
+        SUM(num_takeaways) AS num_takeaways,
+        ROW_NUMBER() OVER (ORDER BY SUM(total_amount) DESC) AS row_num
+    FROM 
+        MonthlyTotals
+    GROUP BY 
+        month_number, month_name
+) 
+WHERE 
+    row_num <= 5;

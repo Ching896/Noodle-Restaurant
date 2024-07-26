@@ -1,0 +1,44 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN Month FORMAT A6 HEADING 'Month'
+COLUMN staff_id FORMAT A8 HEADING 'Staff ID'
+COLUMN staff_name FORMAT A25 HEADING 'Staff Name'
+COLUMN total_orders FORMAT 99999999 HEADING 'Total Order'
+COLUMN total_amount FORMAT $99999999.99 HEADING 'Total Net Income(RM)'
+BREAK ON Month ON staff_id SKIP 1 NODUPLICATES
+
+ACCEPT user_month CHAR PROMPT 'Enter Month (MM): '
+ACCEPT user_year CHAR PROMPT 'Enter Year (YYYY): '
+
+TTITLE LEFT '               Top 5 Staff with Most Orders in Year &user_year' SKIP 1 -
+LEFT '               =========================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_orders ON Month
+COMPUTE SUM OF total_amount ON Month;
+
+WITH MonthlyStaffOrders AS (
+    SELECT
+        s.staff_id,
+        s.staff_name,
+        COUNT(fo.order_refno) AS total_orders,
+        SUM(fo.total_amount) AS total_amount,
+        ROW_NUMBER() OVER (ORDER BY COUNT(fo.order_refno) DESC) AS order_rank
+    FROM
+        staff s
+    LEFT JOIN
+        food_order fo ON s.staff_id = fo.staff_id
+    WHERE
+        TO_CHAR(fo.order_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+    GROUP BY
+        s.staff_id, s.staff_name
+)
+SELECT
+    TO_CHAR(TO_DATE('&user_month', 'MM'), 'MON') AS Month,
+    staff_id,
+    staff_name,
+    total_orders,
+    total_amount
+FROM
+    MonthlyStaffOrders
+WHERE
+    order_rank <= 5;

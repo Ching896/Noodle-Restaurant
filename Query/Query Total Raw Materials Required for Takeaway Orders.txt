@@ -1,0 +1,41 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN TOTAL_COST FORMAT A14
+COLUMN r_id FORMAT A10
+COLUMN total_cost FORMAT 9999999999.99 HEADING 'TOTAL_COST(RM)'
+BREAK ON Year SKIP 1 NODUPLICATES
+ACCEPT input_year CHAR PROMPT 'Enter year (YYYY): '
+ACCEPT input_month CHAR PROMPT 'Enter month (MM): '
+
+
+TTITLE LEFT '                     Total Raw Materials Required for Takeaway Orders' SKIP 1 -
+LEFT '                   ====================================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_raw_material_qty ON Year
+COMPUTE SUM OF total_cost ON Year;
+
+WITH RawMaterialTotals AS (
+    SELECT 
+        r.r_id,
+        r.r_supplierName,
+        SUM(ip.packing_qty) AS total_qty,
+        SUM(r.r_totalPrice * ip.packing_qty) AS total_cost
+    FROM 
+        takeaway t
+        JOIN item_packing ip ON t.takeaway_id = ip.takeaway_id
+        JOIN rawMaterial r ON ip.r_id = r.r_id
+    WHERE 
+        TO_CHAR(t.takeaway_date, 'MM-YYYY') = '&input_month_year'
+    GROUP BY 
+        r.r_id, r.r_supplierName
+)
+SELECT 
+    &input_year AS Year,
+    r_id,
+    r_supplierName,
+    total_qty AS total_raw_material_qty,
+    total_cost
+FROM 
+    RawMaterialTotals
+ORDER BY 
+    total_cost;

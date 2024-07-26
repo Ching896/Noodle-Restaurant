@@ -1,0 +1,55 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN item_name FORMAT A20
+COLUMN item_code FORMAT A10
+COLUMN Year FORMAT A10
+BREAK ON Year SKIP 1 NODUPLICATES
+ACCEPT input_month_year CHAR PROMPT 'Enter month and year (MM-YYYY): '
+
+TTITLE LEFT '                   Most And Least Popular Drink Items' SKIP 1 -
+LEFT '                 =======================================' SKIP 2
+
+COMPUTE SUM LABEL 'Total:' OF total_item_qty ON Year
+COMPUTE SUM OF total_revenue ON Year;
+
+WITH FoodTotals AS (
+SELECT 
+    oi.item_code, 
+    i.item_name, 
+    SUM(oi.item_qty) AS total_item_qty,
+    SUM(oi.item_qty * i.item_price) AS total_revenue
+FROM 
+    Food_Order fo
+    JOIN order_list oi ON fo.order_refno = oi.order_refno
+    JOIN Item i ON oi.item_code = i.item_code
+WHERE 
+    TO_CHAR(fo.order_date, 'MM-YYYY') = '&input_month_year'
+    AND i.item_type = 'Drink'
+GROUP BY 
+    oi.item_code, 
+    i.item_name
+)
+SELECT 
+    '&input_month_year' AS Year,
+    CASE 
+        WHEN most_popular_rank = 1 THEN 'Most Popular'
+        ELSE 'Least Popular'
+    END AS popularity,
+    item_code,
+    item_name, 
+    total_item_qty,
+    total_revenue
+FROM (
+SELECT 
+    item_code, 
+    item_name, 
+    total_item_qty,
+    total_revenue,
+    RANK() OVER (ORDER BY total_item_qty DESC) AS most_popular_rank,
+    RANK() OVER (ORDER BY total_item_qty ASC) AS least_popular_rank
+FROM 
+    FoodTotals
+)
+WHERE 
+    most_popular_rank = 1
+    OR least_popular_rank = 1;

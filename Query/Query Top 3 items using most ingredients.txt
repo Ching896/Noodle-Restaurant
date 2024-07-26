@@ -1,0 +1,47 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN item_code FORMAT A10
+COLUMN item_name FORMAT A20
+COLUMN ingredients_used FORMAT A20
+COLUMN total_ingredients FORMAT 99999
+ACCEPT input_month_year CHAR PROMPT 'Enter month and year (MM-YYYY): '
+
+TTITLE LEFT '                 Top 3 Items Using Most Ingredients' SKIP 1 -
+LEFT '               ======================================' SKIP 2
+
+
+WITH ItemIngredientCounts AS (
+    SELECT 
+        i.item_code, 
+        i.item_name,
+        LISTAGG(ing.i_name, ', ') WITHIN GROUP (ORDER BY ing.i_name) AS ingredients_used,
+        COUNT(*) AS total_ingredients
+    FROM 
+        Item i
+        JOIN Ingredient_used iu ON i.item_code = iu.item_code
+        JOIN Ingredient ing ON iu.i_id = ing.i_id
+    WHERE 
+        TO_CHAR(ing.i_orderDate, 'MM-YYYY') = '&input_month_year'
+    GROUP BY 
+        i.item_code, 
+        i.item_name
+),
+Top3Items AS (
+    SELECT 
+        item_code,
+        item_name,
+        ingredients_used,
+        total_ingredients,
+        RANK() OVER (ORDER BY total_ingredients DESC) AS rank_order
+    FROM 
+        ItemIngredientCounts
+)
+SELECT 
+    item_code,
+    item_name,
+    ingredients_used,
+    total_ingredients
+FROM 
+    Top3Items
+WHERE 
+    rank_order <= 3;

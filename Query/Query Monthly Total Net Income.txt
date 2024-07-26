@@ -1,0 +1,38 @@
+SET LINESIZE 120
+SET PAGESIZE 30
+COLUMN Month FORMAT A5 HEADING 'Month'
+COLUMN total_takeaway_amount FORMAT $99999999.99 HEADING 'Total TakeAway Income(RM)'
+COLUMN total_dinein_amount FORMAT $99999999.99 HEADING 'Total Dine In Income(RM)'
+COLUMN total_amount FORMAT $99999999.99 HEADING 'Total Net Income(RM)'
+
+ACCEPT user_month CHAR PROMPT 'Enter Month (MM): '
+ACCEPT user_year CHAR PROMPT 'Enter Year (YYYY): '
+
+TTITLE LEFT '             Total Net Income in Year &user_year' SKIP 1 -
+LEFT '             =============================' SKIP 2
+
+SELECT 
+    TO_CHAR(TO_DATE('&user_month', 'MM'), 'MON') AS Month,
+    NVL(SUM(T.total_amount), 0) AS total_takeaway_amount,
+    NVL(SUM(FO.total_amount), 0) AS total_dinein_amount,
+    NVL(SUM(T.total_amount), 0) + NVL(SUM(FO.total_amount), 0) AS total_amount
+FROM (
+    SELECT 
+        takeaway_id, 
+        SUM(total_amount) AS total_amount
+    FROM 
+        takeaway
+    WHERE 
+        TO_CHAR(takeaway_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+    GROUP BY 
+        takeaway_id) T
+FULL OUTER JOIN (
+    SELECT 
+        order_refno, 
+        SUM(total_amount) AS total_amount
+    FROM 
+        food_order
+    WHERE 
+        TO_CHAR(order_date, 'MM-YYYY') = '&user_month' || '-' || '&user_year'
+    GROUP BY 
+        order_refno) FO ON T.takeaway_id = FO.order_refno;
