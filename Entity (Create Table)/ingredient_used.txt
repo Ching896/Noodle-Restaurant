@@ -1,0 +1,8 @@
+create table Ingredient_used (
+   i_id 	   varchar(5)    not null,
+   item_code 	   varchar(5)    not null,
+   description	   varchar(40),
+primary key(i_id, item_code),
+foreign key (i_id) references Ingredient(i_id),
+foreign key (item_code) references Item(item_code)
+);

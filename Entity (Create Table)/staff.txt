@@ -1,0 +1,11 @@
+--staff
+create table staff(
+	staff_id varchar(4) NOT NULL,
+	staff_name varchar(50) NOT NULL,
+	staff_phone varchar(14),
+	gender char(1),
+	position varchar(30),
+	date_join date,
+primary key(staff_id),
+constraint check_gender check(UPPER(gender) in ('M','F'))
+);

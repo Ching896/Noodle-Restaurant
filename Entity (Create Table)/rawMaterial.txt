@@ -1,0 +1,8 @@
+create table rawMaterial (
+	r_id                   varchar(5)  not null,
+	r_totalPrice            number(6,2),
+	r_supplierName         varchar(30),
+	r_qty                  number(3),
+	r_orderDate            date,
+primary key(r_id)
+);

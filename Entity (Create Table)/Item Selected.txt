@@ -1,0 +1,9 @@
+create table Item_Selected(
+	item_code varchar(5) NOT NULL,
+	takeaway_id varchar(15) NOT NULL,
+	item_qty number(3),
+	special_instruction varchar(50),
+primary key(item_code,takeaway_id),
+foreign key(item_code) references Item(item_code),
+foreign key(takeaway_id) references Takeaway(takeaway_id)
+);

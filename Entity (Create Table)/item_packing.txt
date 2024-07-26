@@ -1,0 +1,9 @@
+create table item_packing (
+	r_id                   varchar(5)  not null,
+	takeaway_id            varchar(15)  not null,
+	packing_qty            number(2),
+	require                varchar(50),
+primary key(r_id, takeaway_id),
+foreign key(r_id) references rawMaterial(r_id),
+foreign key(takeaway_id) references takeaway(takeaway_id)
+);

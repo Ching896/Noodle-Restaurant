@@ -1,0 +1,9 @@
+create table AddOnBread (
+   order_refno	varchar(15) not null,
+   bread_code	varchar(4) not null,
+   bread_qty	number(2),
+   discount	number(2,2),
+primary key(order_refno,bread_code),
+foreign key(order_refno) references Food_Order(order_refno),
+foreign key(bread_code) references Specialty_Bread(bread_code)
+);

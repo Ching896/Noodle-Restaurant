@@ -1,0 +1,9 @@
+create table takeaway(
+	takeaway_id            varchar(15)  not null,
+	platform               varchar(15),
+	takeaway_charge        number(4,2),
+	sub_total              number(5,2),
+	total_amount           number(6,2),
+	takeaway_date          date,
+primary key(takeaway_id)
+);

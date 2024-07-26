@@ -1,0 +1,11 @@
+--customer
+create table customer(
+	cust_id number(4) NOT NULL,
+	cust_name varchar(50) NOT NULL,
+	cust_phone varchar(14),
+	gender char(1),
+	email varchar(40),
+primary key(cust_id),
+constraint chk_email check(REGEXP_LIKE(email,'^[a-zA-Z]\w+@(\S+)$')),
+constraint chk_gender check(UPPER(gender) in ('M','F'))
+);

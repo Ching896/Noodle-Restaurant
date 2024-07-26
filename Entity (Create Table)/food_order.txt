@@ -1,0 +1,14 @@
+--food_order
+create table food_order(
+	order_refno varchar(15) NOT NULL,
+	no_pax number(2),
+	order_date date,
+	total_amount number(7,2),
+	service_tax number(6,2),
+	payment_method varchar(20),
+	staff_id varchar(4),
+	cust_id number(4),
+primary key(order_refno),
+foreign key(staff_id) references staff(staff_id),
+foreign key(cust_id) references customer(cust_id)	
+);

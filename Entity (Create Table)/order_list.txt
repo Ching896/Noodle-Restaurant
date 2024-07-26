@@ -1,0 +1,9 @@
+create table order_list(
+	item_code varchar(5)NOT NULL,
+	order_refno varchar(15) NOT NULL,
+	item_qty number(3),
+	special_instruction varchar(50),
+primary key(item_code,order_refno),
+foreign key(item_code) references Item(item_code),
+foreign key(order_refno) references Food_Order(order_refno)
+);

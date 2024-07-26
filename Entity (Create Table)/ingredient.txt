@@ -1,0 +1,12 @@
+create table Ingredient (
+   i_id 	   varchar(5)    not null,
+   i_Name 	   varchar(20),
+   i_Type 	   varchar(20),
+   i_totalPrice    number(6,2),
+   i_supplierName  varchar(30),
+   i_orderDate   date,
+   i_qty           number(3),
+primary key(i_id)
+);
+COLUMN I_SUPPLIERNAME FORMAT A30
+set pagesize 150

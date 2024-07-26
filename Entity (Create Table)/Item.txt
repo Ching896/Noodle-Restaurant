@@ -1,0 +1,9 @@
+create table Item (
+	item_code varchar(5) NOT NULL, 
+	item_type varchar(10),
+	item_category varchar(50),
+	item_description varchar(200),
+	item_name varchar(50),
+	item_price number(5,2),
+primary key(item_code)
+);

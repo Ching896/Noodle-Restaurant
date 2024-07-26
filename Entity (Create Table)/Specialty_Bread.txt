@@ -1,0 +1,8 @@
+create table Specialty_Bread (
+   bread_code	varchar(4) not null,
+   bread_name	varchar(50),
+   bread_price	number(5,2),
+   cust_id	number(4),
+primary key(bread_code),
+foreign key(cust_id) references Customer(cust_id)
+);
